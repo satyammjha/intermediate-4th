@@ -1,162 +1,117 @@
-# DegenToken ERC20 Smart Contract
+# DegenToken
 
-## Overview
+This project implements an ERC-20 token called **DegenToken (DGN)** along with a basic in-game store where users can redeem items by spending their tokens. The token uses OpenZeppelin's ERC20 standard and provides additional functionality for token issuance, transfers, and burning.
 
-The **DegenToken** smart contract is an ERC20-compliant token that will be used on the **Degen Gaming** platform. This token has the following core functionalities:
-1. **Minting**: The platform owner can mint new tokens to distribute as rewards to players.
-2. **Transferring**: Players can transfer their tokens to others.
-3. **Redeeming**: Players can redeem their tokens by burning them, which is useful for in-game purchases.
-4. **Checking Balance**: Players can check their token balance at any time.
-5. **Burning**: Anyone can burn tokens they own if they no longer need them.
+## Key Features
 
-The contract is implemented using OpenZeppelin's ERC20 and Ownable libraries to ensure security and best practices.
+- **ERC-20 Token**: `DegenToken` is a custom ERC-20 token.
+- **Token Issuance**: The owner can issue tokens to specific addresses.
+- **In-Game Store**: Users can redeem tokens to buy in-game items like skins, jackets, and guns.
+- **Token Burning**: Users can burn their own tokens to reduce the supply.
+- **Inventory System**: Tracks the number of items redeemed by each player.
 
-## Features
+## Prerequisites
 
-- **Minting New Tokens**: Only the owner of the contract (platform admin) can mint new tokens.
-- **Transferring Tokens**: Standard ERC20 functionality allowing users to transfer tokens between addresses.
-- **Redeeming Tokens**: Users can redeem their tokens by burning them from their balance.
-- **Checking Balance**: Users can check their token balance at any time using a simple function.
-- **Burning Tokens**: Any user can burn their tokens, permanently removing them from circulation.
+Before running the contract, ensure you have the following:
 
-## Requirements
+- **MetaMask**: MetaMask should be installed in your browser, as this contract interacts with MetaMask through the injected Web3 provider.
+- **Remix IDE**: You will need to use Remix IDE to compile, deploy, and interact with the smart contract.
 
-Before you deploy this contract, make sure you have:
-- **Metamask** set up with the Avalanche network.
-- **Remix IDE** for writing, compiling, and deploying the contract.
-- **Avalanche (AVAX) testnet or mainnet funds** for gas fees.
-- **OpenZeppelin Contracts**: The contract uses OpenZeppelin’s ERC20 and Ownable contracts.
+## Contract Overview
 
-## How to Deploy Using Remix
+### Inheritance and Libraries
 
-### 1. Setup
+- `ERC20`: Inherits from OpenZeppelin's ERC20 contract to create a token that follows the ERC20 standard.
+- `Ownable`: Inherits from OpenZeppelin's `Ownable` to restrict certain functions to the contract owner (like issuing tokens or adding items to the store).
 
-#### Prerequisites
-- **Metamask**: Make sure you have Metamask installed and connected to the Avalanche network (testnet or mainnet).
-- **Remix IDE**: Go to [Remix IDE](https://remix.ethereum.org) in your browser.
+### Key Functions
 
-#### Connecting to Avalanche Network
-- **Avalanche Testnet (Fuji)**:
-    - Network Name: Avalanche FUJI C-Chain
-    - RPC URL: `https://api.avax-test.network/ext/bc/C/rpc`
-    - ChainID: `43113`
-    - Symbol: `AVAX`
-    - Explorer URL: `https://testnet.snowtrace.io/`
-
-- **Avalanche Mainnet**:
-    - Network Name: Avalanche Mainnet C-Chain
-    - RPC URL: `https://api.avax.network/ext/bc/C/rpc`
-    - ChainID: `43114`
-    - Symbol: `AVAX`
-    - Explorer URL: `https://snowtrace.io/`
-
-### 2. Smart Contract Code
-
-Copy the following code and paste it into a new file in the Remix IDE:
+- **Constructor**: Initializes the token name as `DegenToken` and the symbol as `DGN`. It also adds some predefined items to the store (e.g., "Skin", "Gun", "Jacket").
 
 ```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.18;
-
-import "@openzeppelin/contracts@4.9.0/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts@4.9.0/access/Ownable.sol";
-
-contract DegenToken is ERC20, Ownable {
-
-    constructor() ERC20("Degen", "DGN") {}
-
-    
-    function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
-    }
-
-   
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
-        require(amount > 0, "Transfer amount must be greater than zero");
-        require(recipient != address(0), "Invalid address");
-
-        _transfer(_msgSender(), recipient, amount);
-        return true;
-    }
-
-   
-    function redeem(uint256 amount) public returns (bool) {
-        require(balanceOf(msg.sender) >= amount, "Insufficient balance to redeem");
-        _burn(msg.sender, amount);
-        return true;
-    }
-
-  
-    function checkBalance(address account) public view returns (uint256) {
-        return balanceOf(account);
-    }
-
-    function burn(uint256 amount) public {
-        require(amount > 0, "Burn amount must be greater than zero");
-        _burn(msg.sender, amount);
-    }
+constructor() ERC20("DegenToken", "DGN") {
+    _addItem("Skin", 300, "A super cool skin for accessories");
+    _addItem("Gun", 370, "Snow gun which releases Icet");
+    _addItem("Jacket", 360, "Adventurousous biker's Jacket");
 }
 ```
 
-### 3. Compile the Contract
+- **issueTokens**: Allows the contract owner to issue (mint) new tokens to a given address.
+  
+  ```solidity
+  function issueTokens(address to, uint256 amount) public onlyOwner {
+      _mint(to, amount);
+  }
+  ```
 
-1. In Remix, go to the **Solidity Compiler** tab.
-2. Select the compiler version `0.8.18` (or a compatible version).
-3. Click on **Compile DegenToken.sol**.
+- **sendTokens**: Allows users to send tokens to another address.
 
-### 4. Deploy the Contract
+- **redeem**: Allows users to redeem tokens for in-game items. The cost of the item is deducted from their balance.
 
-1. Go to the **Deploy & Run Transactions** tab.
-2. Ensure that **Environment** is set to **Injected Web3** (this connects Remix to your Metamask wallet).
-3. Select your contract `DegenToken` in the contract dropdown.
-4. Click on **Deploy**.
-5. Confirm the transaction in Metamask.
+- **destroyTokens**: Allows users to burn a specific number of their own tokens.
 
-### 5. Interact with the Contract
+- **_addItem**: A helper function used by the owner to add new items to the store.
 
-Once deployed, you can interact with the contract via the Remix interface or directly using Metamask.
+- **listAllItems**: Returns a list of all available in-game items.
 
-#### Mint Tokens (Owner Only)
-- **Function**: `mint(address to, uint256 amount)`
-- Parameters:
-    - `to`: The address to mint tokens to.
-    - `amount`: The number of tokens to mint.
+## Deployment on Remix IDE
 
-#### Transfer Tokens
-- **Function**: `transfer(address recipient, uint256 amount)`
-- Parameters:
-    - `recipient`: The address to send tokens to.
-    - `amount`: The number of tokens to transfer.
+1. **Open Remix IDE**:
+   - Visit [Remix IDE](https://remix.ethereum.org) in your browser.
+   
+2. **Install MetaMask**:
+   - Ensure you have the MetaMask extension installed and set up in your browser.
+   - Connect MetaMask to the Remix IDE by selecting the "Injected Web3" option.
 
-#### Redeem Tokens
-- **Function**: `redeem(uint256 amount)`
-- Parameters:
-    - `amount`: The number of tokens to redeem (burn).
+3. **Copy the Contract**:
+   - Copy the entire Solidity code into a new `.sol` file in Remix.
 
-#### Check Balance
-- **Function**: `checkBalance(address account)`
-- Parameters:
-    - `account`: The address whose balance you want to check.
+4. **Compile the Contract**:
+   - In the **Solidity Compiler** tab, select version `0.8.18` or above.
+   - Click on **Compile**.
 
-#### Burn Tokens
-- **Function**: `burn(uint256 amount)`
-- Parameters:
-    - `amount`: The number of tokens to burn.
+5. **Deploy the Contract**:
+   - In the **Deploy & Run Transactions** tab, choose the `Injected Web3` environment (this should be MetaMask).
+   - Click on **Deploy** and confirm the transaction in MetaMask.
 
-### 6. Verify the Contract (Optional)
+6. **Interact with the Contract**:
+   - After deployment, you can interact with the contract using Remix or a frontend that connects to MetaMask.
 
-To verify the contract on the Avalanche Explorer (either testnet or mainnet):
-1. Copy your contract address.
-2. Go to the corresponding explorer ([Snowtrace](https://snowtrace.io/) for mainnet, or [testnet Snowtrace](https://testnet.snowtrace.io/) for Fuji testnet).
-3. Search for your contract address and use the **Contract Verification** feature to submit your source code.
+## Interacting with MetaMask
 
-## Troubleshooting
+To interact with this contract using MetaMask on Remix:
 
-- **Compiler Issues**: If you encounter any issues with compiling, ensure that the Solidity version in Remix matches the one used in the contract (`0.8.18`).
-- **Metamask Errors**: Ensure you are connected to the Avalanche network and have AVAX tokens for gas fees.
+1. **Connect MetaMask**: Ensure MetaMask is connected and funded with ETH to pay for gas fees.
+2. **Issue Tokens**: As the owner, you can issue tokens by calling the `issueTokens` function and providing the recipient's address and token amount.
+3. **Redeem Items**: Use the `redeem` function to redeem store items by providing the item ID and sufficient token balance.
+4. **Check Inventory**: Use the `getPlayerInventory` function to check how many items a player has redeemed.
+
+## Store Items
+
+Initial items in the store:
+
+| Item ID | Name  | Price (DGN) | Description                         |
+|---------|-------|-------------|-------------------------------------|
+| 1       | Skin  | 300         | A super cool skin for accessories   |
+| 2       | Gun   | 370         | Snow gun which releases Icet        |
+| 3       | Jacket| 360         | Adventurous biker's Jacket          |
+
+## Token Functions
+
+### Token Transfers
+
+- **sendTokens(recipient, amount)**: Transfer tokens to another player.
+- **getBalance(account)**: Check the balance of a specific address.
+
+### Burn Tokens
+
+- **destroyTokens(amount)**: Burn (destroy) a specified amount of tokens from the caller's balance.
+
 
 ## License
 
 This project is licensed under the MIT License.
+
+---
 ## Author
-- Satyam Jha (satyammjha0@gmail.com)
+Satyam Jha (satyammjha0@gmail.com)
