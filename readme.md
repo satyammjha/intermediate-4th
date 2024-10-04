@@ -65,12 +65,12 @@ contract DegenToken is ERC20, Ownable {
 
     constructor() ERC20("Degen", "DGN") {}
 
-    // Minting new tokens (only owner can mint)
+    
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
     }
 
-    // Transferring tokens (inherit from ERC20)
+   
     function transfer(address recipient, uint256 amount) public override returns (bool) {
         require(amount > 0, "Transfer amount must be greater than zero");
         require(recipient != address(0), "Invalid address");
@@ -79,19 +79,18 @@ contract DegenToken is ERC20, Ownable {
         return true;
     }
 
-    // Redeem tokens by burning them (redeem for in-game items would be handled elsewhere in the system)
+   
     function redeem(uint256 amount) public returns (bool) {
         require(balanceOf(msg.sender) >= amount, "Insufficient balance to redeem");
         _burn(msg.sender, amount);
         return true;
     }
 
-    // Check token balance
+  
     function checkBalance(address account) public view returns (uint256) {
         return balanceOf(account);
     }
 
-    // Burn tokens (anyone can burn their own tokens)
     function burn(uint256 amount) public {
         require(amount > 0, "Burn amount must be greater than zero");
         _burn(msg.sender, amount);
